@@ -1,0 +1,171 @@
+#include <MeMCore.h>
+#include <Arduino.h>
+#include <Wire.h>
+#include <SoftwareSerial.h>
+
+float Svirao = 0;
+
+MeRGBLed rgbled_7(7, 2);
+MeUltrasonicSensor ultrasonic_3(3);
+double currentTime = 0;
+double lastTime = 0;
+MeLightSensor lightsensor_6(6);
+MeDCMotor motor_9(9);
+MeDCMotor motor_10(10);
+MeBuzzer buzzer;
+
+void Mrak (){
+  lastTime = millis() / 1000.0;
+  if(lightsensor_6.read() < 600){
+      motor_9.run(0);
+      motor_10.run(0);
+      buzzer.tone(1175, 0.5 * 1000);
+      delay(20);
+
+  }
+
+}
+
+MeLineFollower linefollower_2(2);
+void move(int direction, int speed) {
+  int leftSpeed = 0;
+  int rightSpeed = 0;
+  if(direction == 1) {
+    leftSpeed = speed;
+    rightSpeed = speed;
+  } else if(direction == 2) {
+    leftSpeed = -speed;
+    rightSpeed = -speed;
+  } else if(direction == 3) {
+    leftSpeed = -speed;
+    rightSpeed = speed;
+  } else if(direction == 4) {
+    leftSpeed = speed;
+    rightSpeed = -speed;
+  }
+  motor_9.run((9) == M1 ? -(leftSpeed) : (leftSpeed));
+  motor_10.run((10) == M1 ? -(rightSpeed) : (rightSpeed));
+}
+void Prati_Liniju (){
+  if((0 ? (3 == 0 ? linefollower_2.readSensors() == 0 :
+  (linefollower_2.readSensors() & 3) == 3) :
+  (3 == 0 ? linefollower_2.readSensors() == 3 :
+  (linefollower_2.readSensors() & 3) == 0))){
+      move(1, 200 / 100.0 * 255);
+
+  }
+  if((0 ? (1 == 0 ? linefollower_2.readSensors() == 0 :
+  (linefollower_2.readSensors() & 1) == 1) :
+  (1 == 0 ? linefollower_2.readSensors() == 3 :
+  (linefollower_2.readSensors() & 1) == 0))){
+      motor_9.run(-1 * (150 / 100.0 * 255));
+      motor_10.run(0 / 100.0 * 255);
+
+  }
+  if((0 ? (2 == 0 ? linefollower_2.readSensors() == 0 :
+  (linefollower_2.readSensors() & 2) == 2) :
+  (2 == 0 ? linefollower_2.readSensors() == 3 :
+  (linefollower_2.readSensors() & 2) == 0))){
+      motor_9.run(-1 * (0 / 100.0 * 255));
+      motor_10.run(150 / 100.0 * 255);
+
+  }
+  if((0 ? (0 == 0 ? linefollower_2.readSensors() == 0 :
+  (linefollower_2.readSensors() & 0) == 0) :
+  (0 == 0 ? linefollower_2.readSensors() == 3 :
+  (linefollower_2.readSensors() & 0) == 0))){
+      move(2, 100 / 100.0 * 255);
+
+  }
+
+}
+double getLastTime(){
+  return currentTime = millis() / 1000.0 - lastTime;
+}
+void Parkiranje (){
+  motor_9.run(0);
+  motor_10.run(0);
+  Svirao = 0;
+  rgbled_7.setColor(0, 60, 0, 0);
+  rgbled_7.show();
+  while(!(ultrasonic_3.distanceCm() > 15))
+  {
+    _loop();
+  }
+  rgbled_7.setColor(0, 0, 60, 0);
+  rgbled_7.show();
+  while(!(ultrasonic_3.distanceCm() < 5))
+  {
+    _loop();
+    Prati_Liniju();
+    Mrak();
+
+  }
+  motor_9.run(0);
+  motor_10.run(0);
+  lastTime = millis() / 1000.0;
+  while(!(ultrasonic_3.distanceCm() > 15))
+  {
+    _loop();
+    Mrak();
+    if((getLastTime() > 5)  &&  (Svirao == 0.000000)){
+        Svirao = 1;
+        Zvuk();
+
+    }
+
+  }
+
+}
+void Zvuk (){
+  buzzer.tone(392, 0.25 * 1000);
+  delay(20);
+  buzzer.tone(587, 0.25 * 1000);
+  delay(20);
+  buzzer.tone(494, 0.25 * 1000);
+  delay(20);
+  buzzer.tone(587, 0.25 * 1000);
+  delay(20);
+
+}
+
+void _delay(float seconds) {
+  long endTime = millis() + seconds * 1000;
+  while(millis() < endTime) _loop();
+}
+
+void setup() {
+  pinMode(A7, INPUT);
+  while(!((0 ^ (analogRead(A7) > 10 ? 0 : 1))))
+  {
+    _loop();
+  }
+  while(1) {
+      rgbled_7.setColor(0, 0, 0, 60);
+      rgbled_7.show();
+      Prati_Liniju();
+      Mrak();
+      if(ultrasonic_3.distanceCm() < 15){
+          while(!(ultrasonic_3.distanceCm() < 5))
+          {
+            _loop();
+            Prati_Liniju();
+            Mrak();
+
+          }
+          Parkiranje();
+
+      }
+
+      _loop();
+  }
+
+}
+
+void _loop() {
+}
+
+void loop() {
+  _loop();
+}
+
